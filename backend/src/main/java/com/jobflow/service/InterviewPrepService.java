@@ -1,0 +1,91 @@
+package com.jobflow.service;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.jobflow.dto.request.GenerateInterviewPrepRequest;
+import com.jobflow.dto.response.InterviewPrepResponse;
+import com.jobflow.entity.InterviewPrep;
+import com.jobflow.entity.JobApplication;
+import com.jobflow.entity.User;
+import com.jobflow.exception.ResourceNotFoundException;
+import com.jobflow.repository.InterviewPrepRepository;
+import com.jobflow.repository.JobApplicationRepository;
+import com.jobflow.util.PromptTemplates;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.UUID;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+@SuppressWarnings("null")
+public class InterviewPrepService {
+
+        private final LLMOrchestrator llm;
+        private final InterviewPrepRepository interviewPrepRepository;
+        private final JobApplicationRepository jobApplicationRepository;
+        private final UserService userService;
+        private final ObjectMapper objectMapper;
+
+        @Transactional
+        public InterviewPrepResponse generate(GenerateInterviewPrepRequest request) {
+                User user = userService.getCurrentUser();
+
+                JobApplication application = null;
+                if (request.applicationId() != null) {
+                        application = jobApplicationRepository
+                                        .findByIdAndUserIdAndDeletedAtIsNull(request.applicationId(), user.getId())
+                                        .orElseThrow(() -> new ResourceNotFoundException("Application",
+                                                        request.applicationId()));
+                }
+
+                String company = request.company() != null ? request.company() : "the company";
+                String jd = request.jobDescription() != null ? request.jobDescription() : "(no description provided)";
+                String techStack = request.techStack() != null
+                                ? String.join(", ", request.techStack())
+                                : "(not specified)";
+
+                String prompt = PromptTemplates.INTERVIEW_PREP.formatted(
+                                request.jobTitle(), company, jd, techStack);
+
+                List<?> rawList = llm.completeAsJson(prompt, user.getTier(), List.class);
+                String questionsJson;
+                try {
+                        questionsJson = objectMapper.writeValueAsString(rawList);
+                } catch (JsonProcessingException e) {
+                        throw new IllegalStateException("Failed to serialize interview questions", e);
+                }
+
+                InterviewPrep entity = InterviewPrep.builder()
+                                .user(user)
+                                .application(application)
+                                .questions(questionsJson)
+                                .build();
+                entity = interviewPrepRepository.save(entity);
+
+                return InterviewPrepResponse.from(entity, objectMapper);
+        }
+
+        @Transactional(readOnly = true)
+        public List<InterviewPrepResponse> listForCurrentUser() {
+                User user = userService.getCurrentUser();
+                return interviewPrepRepository
+                                .findByUserIdOrderByCreatedAtDesc(user.getId())
+                                .stream()
+                                .map(e -> InterviewPrepResponse.from(e, objectMapper))
+                                .toList();
+        }
+
+        @Transactional(readOnly = true)
+        public InterviewPrepResponse getById(UUID id) {
+                User user = userService.getCurrentUser();
+                InterviewPrep entity = interviewPrepRepository.findById(id)
+                                .filter(e -> e.getUser().getId().equals(user.getId()))
+                                .orElseThrow(() -> new ResourceNotFoundException("InterviewPrep", id));
+                return InterviewPrepResponse.from(entity, objectMapper);
+        }
+}

@@ -1,0 +1,33 @@
+spring:
+  datasource:
+    # Supabase Transaction Pooler URL (postgres://user:pass@host:port/db)
+    url: ${DATABASE_URL}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      connection-timeout: 30000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+
+  flyway:
+    url: ${DATABASE_URL}
+    enabled: true
+
+  data:
+    redis:
+      # Upstash TLS URL: rediss://:password@host:port
+      url: ${REDIS_URL}
+      ssl:
+        enabled: true
+
+  mail:
+    from: ${MAIL_FROM}
+
+logging:
+  level:
+    com.jobflow: INFO
+    org.springframework.security: WARN
+    org.hibernate: WARN
