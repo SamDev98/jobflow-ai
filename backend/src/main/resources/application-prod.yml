@@ -1,7 +1,9 @@
 spring:
   datasource:
-    # Supabase Transaction Pooler URL (postgres://user:pass@host:port/db)
-    url: ${DATABASE_URL}
+    # Use JDBC-native format to avoid URI parsing issues with user:pass@host
+    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT:5432}/${POSTGRES_DB:postgres}?sslmode=require
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 5
@@ -13,7 +15,9 @@ spring:
     show-sql: false
 
   flyway:
-    url: ${DATABASE_URL}
+    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT:5432}/${POSTGRES_DB:postgres}?sslmode=require
+    user: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
     enabled: true
 
   data:
@@ -23,11 +27,12 @@ spring:
       ssl:
         enabled: true
 
+jobflow:
   mail:
     from: ${MAIL_FROM}
 
 logging:
   level:
-    com.jobflow: INFO
-    org.springframework.security: WARN
-    org.hibernate: WARN
+    '[com.jobflow]': INFO
+    '[org.springframework.security]': WARN
+    '[org.hibernate]': WARN
