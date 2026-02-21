@@ -32,7 +32,7 @@ git push -u origin main
 4. Em **Settings → Database → Connection String → (Mode: Transaction)**
    - Copie a string no formato: `postgresql://postgres.<ref>:<senha>@aws-0-sa-east-1.pooler.supabase.com:6543/postgres`
 5. Adicione `?sslmode=require` ao final da string
-6. Esta será sua `DATABASE_URL`
+6. Esta será sua `DATABASE_URL` (sem `jdbc:`; o backend adiciona automaticamente no profile `prod`)
 
 > O Flyway irá criar as tabelas automaticamente no primeiro deploy.
 
@@ -76,7 +76,7 @@ flyctl secrets set \
   POSTGRES_DB="postgres" \
   POSTGRES_USER="postgres.<ref>" \
   POSTGRES_PASSWORD="<senha-supabase>" \
-  DATABASE_URL="postgresql://postgres.<ref>:<senha>@aws-0-sa-east-1.pooler.supabase.com:6543/postgres?sslmode=require" \
+   DATABASE_URL="postgresql://postgres.<ref>:<senha>@aws-0-sa-east-1.pooler.supabase.com:6543/postgres?sslmode=require" \
   REDIS_URL="rediss://:<senha-upstash>@<host-upstash>:<porta>" \
   CLERK_JWKS_URI="https://<clerk-domain>/.well-known/jwks.json" \
   CLERK_ISSUER="https://<clerk-domain>" \
@@ -90,6 +90,9 @@ flyctl secrets set \
   MAIL_FROM="noreply@<seu-dominio>" \
   TELEGRAM_BOT_TOKEN="<bot-token>"
 ```
+
+> Evite definir `SPRING_DATASOURCE_URL`/`SPRING_FLYWAY_URL` com formato `jdbc:postgresql://user:pass@host...`.
+> O backend em `prod` já monta o JDBC corretamente a partir de `POSTGRES_HOST/PORT/DB/USER/PASSWORD`.
 
 > Para obter `CLERK_JWKS_URI` e `CLERK_ISSUER`: no Clerk Dashboard → **API Keys** → copie o **Frontend API URL** e adicione `/.well-known/jwks.json`.
 

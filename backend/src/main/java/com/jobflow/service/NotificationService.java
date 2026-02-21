@@ -30,7 +30,7 @@ public class NotificationService {
     @Value("${telegram.bot-token:}")
     private String telegramBotToken;
 
-    @Value("${spring.mail.from:noreply@jobflow.dev}")
+    @Value("${jobflow.mail.from:noreply@jobflow.dev}")
     private String mailFrom;
 
     // Every day at 08:00
