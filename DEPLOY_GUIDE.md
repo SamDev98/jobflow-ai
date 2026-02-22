@@ -165,16 +165,19 @@ Com isso, cada `git push` para `main`:
 
 ---
 
-## 7. Clerk — Configurar instância de produção
+## 7. Clerk — Configurar instância
 
-1. No Clerk Dashboard → **Create application** (ou clique em **Production** na app existente)
-2. Em **Domains**:
-   - Adicione `jobflow-api.fly.dev` (backend)
-   - Adicione `<seu-projeto>.vercel.app` (frontend)
-3. Copie a `Publishable Key` de produção (`pk_live_...`)
-4. Copie o `Frontend API URL` → use para montar `CLERK_JWKS_URI` e `CLERK_ISSUER`
+> **Atenção:** O Clerk não permite domínios `*.fly.dev` em instâncias de **Produção**. Para testar o deploy sem um domínio próprio, continue usando a instância de **Desenvolvimento**.
 
-> A instância de produção do Clerk tem JWTs com validade mais longa e não requer modo desenvolvimento.
+1. No Clerk Dashboard:
+   - Se for usar domínio customizado: Vá em **Production** e siga as instruções.
+   - Se for usar os domínios gratuitos: Use a instância **Development**.
+2. Em **Settings → Allowed Origins**:
+   - Adicione `https://jobflow-api.fly.dev`
+   - Adicione `https://<seu-projeto>.vercel.app`
+3. Atualize as chaves (`VITE_CLERK_PUBLISHABLE_KEY`) no frontend e GitHub Secrets se elas mudarem.
+
+> A instância de desenvolvimento do Clerk funciona perfeitamente para testes em "staging" (Vercel/Fly.io), mas exibirá um aviso de "Development Mode" no rodapé.
 
 ---
 
