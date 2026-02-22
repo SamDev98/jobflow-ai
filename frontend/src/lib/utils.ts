@@ -37,10 +37,10 @@ export const STAGE_LABELS: Record<string, string> = {
 }
 
 export const STAGE_COLORS: Record<string, string> = {
-  APPLIED: 'bg-blue-100 text-blue-800',
-  SCREENING: 'bg-yellow-100 text-yellow-800',
-  TECHNICAL: 'bg-purple-100 text-purple-800',
-  ONSITE: 'bg-orange-100 text-orange-800',
-  OFFER: 'bg-green-100 text-green-800',
-  REJECTED: 'bg-red-100 text-red-800',
+  APPLIED: 'bg-blue-500/10 text-blue-400 border border-blue-500/20',
+  SCREENING: 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20',
+  TECHNICAL: 'bg-purple-500/10 text-purple-400 border border-purple-500/20',
+  ONSITE: 'bg-orange-500/10 text-orange-400 border border-orange-500/20',
+  OFFER: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
+  REJECTED: 'bg-rose-500/10 text-rose-400 border border-rose-500/20',
 }
