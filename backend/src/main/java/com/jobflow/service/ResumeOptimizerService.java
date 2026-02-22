@@ -2,14 +2,8 @@ package com.jobflow.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jobflow.dto.response.OptimizedResumeResponse;
-import com.jobflow.entity.JobApplication;
-import com.jobflow.entity.Resume;
-import com.jobflow.entity.User;
-import com.jobflow.exception.ResourceNotFoundException;
-import com.jobflow.repository.JobApplicationRepository;
-import com.jobflow.repository.ResumeRepository;
-import com.jobflow.util.PromptTemplates;
+import com.jobflow.dto.request.CreateHistoryRequest;
+import com.jobflow.entity.enums.HistoryType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.xwpf.extractor.XWPFWordExtractor;
@@ -36,6 +30,7 @@ public class ResumeOptimizerService {
         private final JobApplicationRepository applicationRepository;
         private final UserService userService;
         private final ObjectMapper objectMapper;
+        private final HistoryService historyService;
 
         @Transactional
         public OptimizedResumeResponse optimize(MultipartFile resumeFile,
@@ -91,6 +86,21 @@ public class ResumeOptimizerService {
                                 .changesMade(objectMapper.writeValueAsString(optimizations))
                                 .build();
                 resume = resumeRepository.save(resume);
+
+                // 6.1 Save to history
+                try {
+                        String title = "Optimization: " + (application != null ? application.getCompany() : "Custom");
+                        historyService.createHistory(CreateHistoryRequest.builder()
+                                        .type(HistoryType.RESUME_OPTIMIZATION)
+                                        .title(title)
+                                        .content((String) optimizations.get("optimized_content"))
+                                        .metadata(objectMapper.writeValueAsString(Map.of(
+                                                        "jobDescription", jobDescription,
+                                                        "atsScore", atsScore)))
+                                        .build());
+                } catch (Exception e) {
+                        log.warn("Failed to save history for resume optimization", e);
+                }
 
                 // 7. Build response
                 String optimizedContent = (String) optimizations.get("optimized_content");
