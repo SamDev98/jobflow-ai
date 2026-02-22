@@ -3,9 +3,11 @@ package com.jobflow.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jobflow.dto.request.CreateHistoryRequest;
 import com.jobflow.dto.response.SalaryRangeResponse;
 import com.jobflow.entity.SalaryResearch;
 import com.jobflow.entity.User;
+import com.jobflow.entity.enums.HistoryType;
 import com.jobflow.repository.SalaryResearchRepository;
 import com.jobflow.util.PromptTemplates;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 
@@ -26,6 +29,7 @@ public class SalaryResearchService {
         private final SalaryResearchRepository salaryResearchRepository;
         private final UserService userService;
         private final ObjectMapper objectMapper;
+        private final HistoryService historyService;
 
         @Transactional
         public SalaryRangeResponse research(String jobTitle, String company,
@@ -73,6 +77,24 @@ public class SalaryResearchService {
                                 .dataSources(objectMapper.writeValueAsString(Map.of("raw", collectedData)))
                                 .build();
                 entity = salaryResearchRepository.save(entity);
+
+                // Save to history
+                try {
+                        String title = "Salary Research: " + jobTitle + (company != null ? " at " + company : "");
+                        historyService.createHistory(CreateHistoryRequest.builder()
+                                        .type(HistoryType.SALARY_RESEARCH)
+                                        .title(title)
+                                        .content("Research for " + jobTitle + " in " + location + ". Range: $" + low
+                                                        + " - $"
+                                                        + high)
+                                        .metadata(objectMapper.writeValueAsString(Map.of(
+                                                        "low", low,
+                                                        "high", high,
+                                                        "reasoning", reasoning)))
+                                        .build());
+                } catch (Exception e) {
+                        log.warn("Failed to save salary research to history", e);
+                }
 
                 return new SalaryRangeResponse(entity.getId(), low, mid, high, reasoning, confidence);
         }

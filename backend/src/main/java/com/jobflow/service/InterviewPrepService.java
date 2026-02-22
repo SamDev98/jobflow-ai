@@ -2,11 +2,13 @@ package com.jobflow.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.jobflow.dto.request.CreateHistoryRequest;
 import com.jobflow.dto.request.GenerateInterviewPrepRequest;
 import com.jobflow.dto.response.InterviewPrepResponse;
 import com.jobflow.entity.InterviewPrep;
 import com.jobflow.entity.JobApplication;
 import com.jobflow.entity.User;
+import com.jobflow.entity.enums.HistoryType;
 import com.jobflow.exception.ResourceNotFoundException;
 import com.jobflow.repository.InterviewPrepRepository;
 import com.jobflow.repository.JobApplicationRepository;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -30,6 +33,7 @@ public class InterviewPrepService {
         private final JobApplicationRepository jobApplicationRepository;
         private final UserService userService;
         private final ObjectMapper objectMapper;
+        private final HistoryService historyService;
 
         @Transactional
         public InterviewPrepResponse generate(GenerateInterviewPrepRequest request) {
@@ -66,6 +70,23 @@ public class InterviewPrepService {
                                 .questions(questionsJson)
                                 .build();
                 entity = interviewPrepRepository.save(entity);
+
+                // Save to history
+                try {
+                        String title = "Interview Prep: " + request.jobTitle()
+                                        + (request.company() != null ? " at " + request.company() : "");
+                        historyService.createHistory(CreateHistoryRequest.builder()
+                                        .type(HistoryType.INTERVIEW_PREP)
+                                        .title(title)
+                                        .content("Generated interview prep for " + request.jobTitle() + ". "
+                                                        + rawList.size() + " questions.")
+                                        .metadata(objectMapper.writeValueAsString(Map.of(
+                                                        "jobTitle", request.jobTitle(),
+                                                        "questionCount", rawList.size())))
+                                        .build());
+                } catch (Exception e) {
+                        log.warn("Failed to save interview prep to history", e);
+                }
 
                 return InterviewPrepResponse.from(entity, objectMapper);
         }

@@ -21,52 +21,51 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class HistoryService {
 
-    private final HistoryRepository historyRepository;
-    private final SecurityUtils securityUtils;
-    private final UserService userService;
+  private final HistoryRepository historyRepository;
+  private final UserService userService;
 
-    @Transactional(readOnly = true)
-    public Page<HistoryResponse> getAllHistory(HistoryType type, Pageable pageable) {
-        User user = userService.getOrCreateUser(securityUtils.getCurrentUserId());
-        Page<HistoryItem> items;
-        if (type != null) {
-            items = historyRepository.findAllByUserIdAndType(user.getId(), type, pageable);
-        } else {
-            items = historyRepository.findAllByUserId(user.getId(), pageable);
-        }
-        return items.map(this::mapToResponse);
+  @Transactional(readOnly = true)
+  public Page<HistoryResponse> getAllHistory(HistoryType type, Pageable pageable) {
+    User user = userService.getCurrentUser();
+    Page<HistoryItem> items;
+    if (type != null) {
+      items = historyRepository.findAllByUserIdAndType(user.getId(), type, pageable);
+    } else {
+      items = historyRepository.findAllByUserId(user.getId(), pageable);
     }
+    return items.map(this::mapToResponse);
+  }
 
-    @Transactional
-    public HistoryResponse createHistory(CreateHistoryRequest request) {
-        User user = userService.getOrCreateUser(securityUtils.getCurrentUserId());
-        HistoryItem item = HistoryItem.builder()
-                .user(user)
-                .type(request.getType())
-                .title(request.getTitle())
-                .content(request.getContent())
-                .metadata(request.getMetadata())
-                .build();
-        return mapToResponse(historyRepository.save(item));
-    }
+  @Transactional
+  public HistoryResponse createHistory(CreateHistoryRequest request) {
+    User user = userService.getCurrentUser();
+    HistoryItem item = HistoryItem.builder()
+        .user(user)
+        .type(request.getType())
+        .title(request.getTitle())
+        .content(request.getContent())
+        .metadata(request.getMetadata())
+        .build();
+    return mapToResponse(historyRepository.save(item));
+  }
 
-    @Transactional
-    public void deleteHistory(UUID id) {
-        User user = userService.getOrCreateUser(securityUtils.getCurrentUserId());
-        HistoryItem item = historyRepository.findByIdAndUserId(id, user.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("History item not found"));
-        item.setDeletedAt(Instant.now());
-        historyRepository.save(item);
-    }
+  @Transactional
+  public void deleteHistory(UUID id) {
+    User user = userService.getCurrentUser();
+    HistoryItem item = historyRepository.findByIdAndUserId(id, user.getId())
+        .orElseThrow(() -> new ResourceNotFoundException("History", id));
+    item.setDeletedAt(Instant.now());
+    historyRepository.save(item);
+  }
 
-    private HistoryResponse mapToResponse(HistoryItem item) {
-        return HistoryResponse.builder()
-                .id(item.getId())
-                .type(item.getType())
-                .title(item.getTitle())
-                .content(item.getContent())
-                .metadata(item.getMetadata())
-                .createdAt(item.getCreatedAt())
-                .build();
-    }
+  private HistoryResponse mapToResponse(HistoryItem item) {
+    return HistoryResponse.builder()
+        .id(item.getId())
+        .type(item.getType())
+        .title(item.getTitle())
+        .content(item.getContent())
+        .metadata(item.getMetadata())
+        .createdAt(item.getCreatedAt())
+        .build();
+  }
 }
