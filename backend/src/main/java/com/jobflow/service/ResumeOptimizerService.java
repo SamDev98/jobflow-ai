@@ -39,6 +39,7 @@ public class ResumeOptimizerService {
 
         @Transactional
         public OptimizedResumeResponse optimize(MultipartFile resumeFile,
+                        MultipartFile templateFile,
                         String jobDescription,
                         UUID applicationId) throws IOException {
                 User user = userService.getCurrentUser();
@@ -48,36 +49,37 @@ public class ResumeOptimizerService {
                                                                 applicationId))
                                 : null;
 
-                // 1. Extract text from .docx
+                // 1. Extract text from .docx files
                 String resumeText = extractDocxText(resumeFile);
+                String templateText = templateFile != null ? extractDocxText(templateFile)
+                                : "Standard professional tech resume style.";
 
-                // 2. Extract ATS keywords from JD
-                String keywordsPrompt = PromptTemplates.EXTRACT_KEYWORDS.formatted(jobDescription);
-                List<?> rawKeywords = llm.completeAsJson(keywordsPrompt, user.getTier(), List.class);
-                List<String> keywords = rawKeywords.stream()
-                                .map(String::valueOf)
-                                .toList();
-
-                // 3. Build user context
+                // 2. Build user context
                 String userContext = buildUserContext(user);
 
-                // 4. Generate optimizations
+                // 3. Generate optimizations (direct pass of JD text for context)
                 String optimizePrompt = PromptTemplates.OPTIMIZE_RESUME.formatted(
-                                userContext, resumeText, String.join(", ", keywords));
+                                templateText, resumeText, jobDescription, userContext);
+
                 Map<String, Object> optimizations = objectMapper.convertValue(
                                 llm.completeAsJson(optimizePrompt, user.getTier(), Map.class),
                                 new TypeReference<Map<String, Object>>() {
                                 });
 
-                // 5. Upload original .docx to R2
+                // 4. Upload original .docx to R2
                 byte[] docxBytes = resumeFile.getBytes();
                 String docxKey = "resumes/%s/%s.docx".formatted(user.getId(), UUID.randomUUID());
                 storageService.upload(new ByteArrayInputStream(docxBytes), docxKey,
                                 "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                                 docxBytes.length);
 
-                // PDF conversion placeholder — integrate LibreOffice or a PDF lib here
+                // PDF conversion placeholder
                 String pdfKey = docxKey.replace(".docx", ".pdf");
+
+                // 5. Calculate ATS Score (rough estimation based on simple word match for
+                // keywords if available)
+                List<String> keywordsApplied = asStringList(optimizations.get("skills_reordered"));
+                int atsScore = calculateAtsScore(resumeText, keywordsApplied);
 
                 // 6. Persist Resume entity
                 Resume resume = Resume.builder()
@@ -85,12 +87,13 @@ public class ResumeOptimizerService {
                                 .application(application)
                                 .s3KeyDocx(docxKey)
                                 .s3KeyPdf(pdfKey)
-                                .atsScore(calculateAtsScore(resumeText, keywords))
+                                .atsScore(atsScore)
                                 .changesMade(objectMapper.writeValueAsString(optimizations))
                                 .build();
                 resume = resumeRepository.save(resume);
 
                 // 7. Build response
+                String optimizedContent = (String) optimizations.get("optimized_content");
                 List<String> skillsReordered = asStringList(optimizations.get("skills_reordered"));
                 List<Map<String, Object>> changes = asMapList(optimizations.get("experience_changes"));
 
@@ -107,6 +110,7 @@ public class ResumeOptimizerService {
                                 storageService.getPresignedUrl(docxKey, 1),
                                 storageService.getPresignedUrl(pdfKey, 1),
                                 resume.getAtsScore(),
+                                optimizedContent,
                                 skillsReordered,
                                 experienceChanges);
         }

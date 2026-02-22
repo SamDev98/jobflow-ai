@@ -40,6 +40,11 @@ class ResumeControllerTest {
         "resume.docx",
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "fake-docx-content".getBytes());
+    MockMultipartFile template = new MockMultipartFile(
+        "template",
+        "template.docx",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "fake-template-content".getBytes());
     MockMultipartFile jd = new MockMultipartFile(
         "jd",
         "",
@@ -51,14 +56,16 @@ class ResumeControllerTest {
         "https://example.com/resume.docx",
         "https://example.com/resume.pdf",
         88,
+        "Optimized content",
         List.of("Java", "Spring"),
         List.of());
 
-    when(resumeOptimizerService.optimize(any(), eq("Backend Engineer JD"), isNull()))
+    when(resumeOptimizerService.optimize(any(), any(), eq("Backend Engineer JD"), isNull()))
         .thenReturn(response);
 
     mockMvc.perform(multipart("/resumes/optimize")
         .file(resume)
+        .file(template)
         .file(jd)
         .with(csrf()))
         .andExpect(status().isOk())

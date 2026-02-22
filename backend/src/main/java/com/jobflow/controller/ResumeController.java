@@ -20,11 +20,12 @@ public class ResumeController {
     private final ResumeOptimizerService resumeOptimizerService;
 
     @PostMapping(value = "/optimize", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "Upload a .docx resume and optimize it for a job description")
+    @Operation(summary = "Upload a .docx resume, a style template, and optimize it for a job description")
     public OptimizedResumeResponse optimize(
             @RequestPart("resume") MultipartFile resumeFile,
+            @RequestPart("template") MultipartFile templateFile,
             @RequestPart("jd") String jobDescription,
             @RequestParam(required = false) UUID applicationId) throws Exception {
-        return resumeOptimizerService.optimize(resumeFile, jobDescription, applicationId);
+        return resumeOptimizerService.optimize(resumeFile, templateFile, jobDescription, applicationId);
     }
 }
