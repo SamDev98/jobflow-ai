@@ -34,8 +34,8 @@ jobs:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
 
       - name: Deploy to Vercel
-        working-directory: frontend
-        run: npx vercel --prod --token ${{ secrets.VERCEL_TOKEN }} --yes
+        run: npx vercel deploy frontend --prod --token ${{ secrets.VERCEL_TOKEN }} --yes
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          NODE_OPTIONS: "--no-deprecation"
