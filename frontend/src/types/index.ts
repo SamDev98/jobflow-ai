@@ -73,6 +73,7 @@ export interface OptimizedResume {
   docxUrl: string
   pdfUrl: string
   atsScore: number
+  optimizedContent?: string
   skillsReordered: string[]
   experienceChanges: ExperienceChange[]
 }
