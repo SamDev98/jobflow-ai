@@ -7,10 +7,9 @@ import {
   Clock,
   ChevronLeft,
   ChevronRight,
-  Menu,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 
 const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: BarChart3 },
