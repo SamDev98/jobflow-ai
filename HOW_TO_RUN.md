@@ -1,20 +1,35 @@
-# HOW TO RUN — JobFlow AI
+# HOW TO RUN & TEST — JobFlow AI
 
-## Pré-requisitos
+Este guia explica como utilizar o **Ambiente de Desenvolvimento Compartilhado** para que outras pessoas possam testar sem precisar instalar nada, e também como configurar o ambiente local.
 
-| Ferramenta | Versão mínima | Verificar |
-|------------|--------------|-----------|
-| Java | 21 | `java -version` |
-| Maven | 3.9+ | `./mvnw -version` |
-| Node.js | 18+ | `node -v` |
-| Docker | 24+ | `docker -v` |
-| Docker Compose | v2 | `docker compose version` |
+---
+
+## 1. Ambiente de Desenvolvimento Compartilhado (Nuvem)
+
+Ideal para passar para testers ou outros desenvolvedores. Não requer Docker ou Java instalado.
+
+| Componente                 | URL de Acesso                                                                              |
+| -------------------------- | ------------------------------------------------------------------------------------------ |
+| **Frontend**               | [https://jobflow-ai.vercel.app/](https://jobflow-ai.vercel.app/)                           |
+| **Backend (API)**          | [https://jobflow-api.fly.dev/actuator/health](https://jobflow-api.fly.dev/actuator/health) |
+| **Documentação (Swagger)** | [https://jobflow-api.fly.dev/swagger-ui.html](https://jobflow-api.fly.dev/swagger-ui.html) |
+
+### Como usar:
+
+1. Basta acessar a URL do Frontend.
+2. O sistema já está configurado para se comunicar com a API na Fly.io.
+3. **Nota sobre o Clerk:** Para que o login (Google/Email) funcione fora de `localhost`, você deve garantir que a URL da Vercel está configurada no seu painel do Clerk (em _Settings -> Domains_).
+
+---
+
+## 2. Pré-requisitos (Para Desenvolvimento Local)
 
 ---
 
 ## 1. Configuração inicial (fazer apenas uma vez)
 
 ### 1.1 Copiar o .env
+
 ```bash
 cd jobflow-ai
 cp .env.example .env
@@ -22,6 +37,7 @@ cp .env.example .env
 ```
 
 ### 1.2 Criar o .env do frontend
+
 ```bash
 cp frontend/.env.example frontend/.env
 # Preencher VITE_CLERK_PUBLISHABLE_KEY
@@ -39,16 +55,18 @@ docker compose up -d
 docker compose ps
 ```
 
-| Serviço | URL |
-|---------|-----|
-| PostgreSQL | `localhost:5432` |
-| Redis | `localhost:6379` |
-| pgAdmin | http://localhost:5050 (admin@jobflow.dev / sam0492@) |
+| Serviço    | URL                                                  |
+| ---------- | ---------------------------------------------------- |
+| PostgreSQL | `localhost:5432`                                     |
+| Redis      | `localhost:6379`                                     |
+| pgAdmin    | http://localhost:5050 (admin@jobflow.dev / sam0492@) |
 
 > Para parar: `docker compose down`
 > Para apagar os dados: `docker compose down -v`
 
 ---
+
+## 3. Rodar o Backend
 
 ## 3. Rodar o Backend
 
@@ -63,16 +81,11 @@ cd backend
 ./mvnw spring-boot:run
 ```
 
-**Aguardar a mensagem:**
-```
-Started JobFlowApplication in X seconds
-```
-
-| Endpoint | URL |
-|----------|-----|
-| API | http://localhost:8080 |
-| Swagger UI | http://localhost:8080/swagger-ui.html |
-| API Docs (JSON) | http://localhost:8080/api-docs |
+| Endpoint        | URL                                   |
+| --------------- | ------------------------------------- |
+| API             | http://localhost:8080                 |
+| Swagger UI      | http://localhost:8080/swagger-ui.html |
+| API Docs (JSON) | http://localhost:8080/api-docs        |
 
 ---
 
@@ -93,11 +106,13 @@ Acesse: **http://localhost:5173**
 ## 5. Testar o fluxo completo
 
 ### 5.1 Autenticação
+
 1. Acesse http://localhost:5173
 2. Crie uma conta pelo Clerk (email + senha)
 3. Após login, o frontend chama automaticamente `POST /users/sync` para criar o usuário no banco
 
 **Verificar no pgAdmin:**
+
 ```sql
 SELECT * FROM users;
 ```
@@ -107,17 +122,22 @@ SELECT * FROM users;
 ### 5.2 Applications CRUD (Kanban)
 
 **Via Swagger UI** (http://localhost:8080/swagger-ui.html):
+
 > Clique em **Authorize** → cole o JWT do Clerk (veja abaixo como obter)
 
 **Obter JWT do Clerk no browser:**
+
 1. Abra o DevTools → Console
 2. Execute:
+
 ```js
-await window.__clerk.session.getToken()
+await window.__clerk.session.getToken();
 ```
+
 3. Copie o token e cole no Swagger
 
 **Criar uma candidatura:**
+
 ```bash
 curl -X POST http://localhost:8080/applications \
   -H "Authorization: Bearer <seu-token>" \
@@ -132,6 +152,7 @@ curl -X POST http://localhost:8080/applications \
 ```
 
 **Via Frontend:**
+
 - Acesse `/pipeline` e veja o Kanban
 - Arraste cards entre colunas para mudar o stage
 
@@ -140,6 +161,7 @@ curl -X POST http://localhost:8080/applications \
 ### 5.3 Resume Optimizer
 
 **Via Swagger:**
+
 ```
 POST /resumes/optimize
   - resume: <arquivo .docx>
@@ -147,6 +169,7 @@ POST /resumes/optimize
 ```
 
 **Via Frontend:**
+
 - Acesse `/tools` → aba **Resume Optimizer**
 - Upload de um `.docx` + cole a descrição da vaga
 - O resultado mostra: ATS Score + bullets otimizados + links de download
@@ -174,8 +197,16 @@ curl http://localhost:8080/analytics/by-stage \
 ```
 
 Retorna contagem de candidaturas por stage:
+
 ```json
-{ "APPLIED": 3, "SCREENING": 1, "TECHNICAL": 0, "ONSITE": 0, "OFFER": 0, "REJECTED": 1 }
+{
+  "APPLIED": 3,
+  "SCREENING": 1,
+  "TECHNICAL": 0,
+  "ONSITE": 0,
+  "OFFER": 0,
+  "REJECTED": 1
+}
 ```
 
 ---
@@ -201,36 +232,40 @@ cd backend
 ## 7. O que está implementado vs. pendente
 
 ### ✅ Funcionando
-| Feature | Endpoints |
-|---------|-----------|
-| Auth via Clerk JWT | Automático |
-| Applications CRUD | `GET/POST/PATCH/DELETE /applications` |
-| Kanban drag & drop | Frontend `/pipeline` |
-| Resume Optimizer (docx) | `POST /resumes/optimize` |
-| Salary Research (LLM) | `POST /salary/research` |
-| Analytics por stage | `GET /analytics/by-stage` |
-| Dashboard | Frontend `/dashboard` |
+
+| Feature                 | Endpoints                             |
+| ----------------------- | ------------------------------------- |
+| Auth via Clerk JWT      | Automático                            |
+| Applications CRUD       | `GET/POST/PATCH/DELETE /applications` |
+| Kanban drag & drop      | Frontend `/pipeline`                  |
+| Resume Optimizer (docx) | `POST /resumes/optimize`              |
+| Salary Research (LLM)   | `POST /salary/research`               |
+| Analytics por stage     | `GET /analytics/by-stage`             |
+| Dashboard               | Frontend `/dashboard`                 |
 
 ### ⚠️ Parcialmente implementado
-| Feature | Status |
-|---------|--------|
-| Resume → PDF | Placeholder — arquivo `.pdf` não é gerado, apenas o `.docx` |
+
+| Feature           | Status                                                               |
+| ----------------- | -------------------------------------------------------------------- |
+| Resume → PDF      | Placeholder — arquivo `.pdf` não é gerado, apenas o `.docx`          |
 | LLM cache (Redis) | Implementado, mas JWKS do Clerk é buscado a cada request (sem cache) |
 
 ### ❌ Ainda não implementado (próximos passos)
-| Feature | O que falta |
-|---------|-------------|
-| **Interview Prep** | `InterviewPrepService`, `InterviewPrepRepository`, `InterviewPrepController` |
-| **Notificações** | `NotificationService` com `@Scheduled` (follow-up, deadlines via email/Telegram) |
-| **PDF real** | Integrar `Apache FOP` ou `LibreOffice headless` no `ResumeOptimizerService` |
-| **Perfil do usuário** | Salvar `UserProfile` (anos de exp, tech stack) via Settings |
-| **Dockerfile backend** | Containerizar o Spring Boot para deploy no Fly.io |
+
+| Feature                | O que falta                                                                      |
+| ---------------------- | -------------------------------------------------------------------------------- |
+| **Interview Prep**     | `InterviewPrepService`, `InterviewPrepRepository`, `InterviewPrepController`     |
+| **Notificações**       | `NotificationService` com `@Scheduled` (follow-up, deadlines via email/Telegram) |
+| **PDF real**           | Integrar `Apache FOP` ou `LibreOffice headless` no `ResumeOptimizerService`      |
+| **Perfil do usuário**  | Salvar `UserProfile` (anos de exp, tech stack) via Settings                      |
+| **Dockerfile backend** | Containerizar o Spring Boot para deploy no Fly.io                                |
 
 ---
 
 ## 8. Troubleshooting
 
 **Backend não conecta no banco:**
+
 ```bash
 # Verificar se o postgres está up
 docker compose ps
@@ -239,14 +274,17 @@ echo $POSTGRES_PASSWORD
 ```
 
 **Erro 401 Unauthorized:**
+
 - O JWT do Clerk expirou — gere um novo pelo Console do browser
 - Verifique se `CLERK_JWKS_URI` e `CLERK_ISSUER` estão corretos no `.env`
 
 **Frontend não aparece após login:**
+
 - Verifique se `VITE_CLERK_PUBLISHABLE_KEY` está no `frontend/.env`
 - Reinicie o `npm run dev` após alterar o `.env`
 
 **Redis connection refused:**
+
 ```bash
 docker compose up -d redis
 # Verificar se REDIS_PASSWORD no .env bate com o do docker-compose.yml

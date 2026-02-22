@@ -1,7 +1,7 @@
 spring:
   datasource:
-    # Use JDBC-native format to avoid URI parsing issues with user:pass@host
-    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT:5432}/${POSTGRES_DB:postgres}?sslmode=require
+    # Adding prepareThreshold=0 for compatibility with PGBouncer (Supabase)
+    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT:5432}/${POSTGRES_DB:postgres}?sslmode=require&prepareThreshold=0
     username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -15,7 +15,8 @@ spring:
     show-sql: false
 
   flyway:
-    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT:5432}/${POSTGRES_DB:postgres}?sslmode=require
+    # Also for Flyway to avoid prepared statement issues
+    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT:5432}/${POSTGRES_DB:postgres}?sslmode=require&prepareThreshold=0
     user: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
     enabled: true

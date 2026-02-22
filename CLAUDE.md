@@ -16,6 +16,7 @@ jobflow-ai/
 ## Commands
 
 ### Infra (rodar sempre primeiro)
+
 ```bash
 docker compose up -d          # Sobe PostgreSQL 16 + Redis 7 + pgAdmin
 docker compose down           # Para os containers
@@ -24,6 +25,7 @@ docker compose logs -f        # Logs em tempo real
 ```
 
 ### Backend
+
 ```bash
 cd backend
 ./mvnw spring-boot:run                        # Roda com perfil dev
@@ -31,10 +33,12 @@ cd backend
 ./mvnw test -Dtest=ApplicationServiceTest     # Teste específico
 ./mvnw verify                                 # Testes + JaCoCo coverage
 ./mvnw clean package -DskipTests             # Build JAR
-# Swagger UI: http://localhost:8080/swagger-ui.html
+# Swagger UI (Local): http://localhost:8080/swagger-ui.html
+# Swagger UI (Prod): https://jobflow-api.fly.dev/swagger-ui.html
 ```
 
 ### Frontend
+
 ```bash
 cd frontend
 npm install           # Instalar dependências
@@ -47,6 +51,7 @@ npm run preview       # Preview do build de produção
 ## Architecture
 
 ### Backend — Fluxo de uma requisição
+
 ```
 HTTP Request
   → ClerkJwtFilter       # Valida JWT via JWKS, popula SecurityContext
@@ -57,6 +62,7 @@ HTTP Request
 ```
 
 **Pacotes principais:**
+
 - `config/` — SecurityConfig (Spring Security + JWKS), RedisConfig, FeignConfig, OpenApiConfig
 - `entity/` — JPA entities com Lombok. `JobApplication` (não `Application` — conflito com java.lang). Soft delete via `deletedAt`.
 - `repository/` — Spring Data JPA. Queries nativas quando necessário. Sempre filtrar `deleted_at IS NULL`.
@@ -70,6 +76,7 @@ HTTP Request
 **Banco:** Flyway migrations em `src/main/resources/db/migration/`. Nunca editar migrations já aplicadas — criar nova versão.
 
 ### Frontend — Fluxo de dados
+
 ```
 Page Component
   → Custom Hook (useApplications, useResume...)
@@ -79,6 +86,7 @@ Page Component
 ```
 
 **Estrutura:**
+
 - `lib/api.ts` — instância axios com `baseURL=VITE_API_URL`. Interceptor injeta token Clerk em cada request.
 - `types/index.ts` — tipos TypeScript compartilhados (Application, Resume, Stage, etc.)
 - `hooks/` — Toda lógica de servidor via TanStack Query. Um hook por recurso.

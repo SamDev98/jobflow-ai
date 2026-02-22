@@ -38,6 +38,9 @@ public class ClerkJwtFilter extends OncePerRequestFilter {
     private String expectedIssuer;
 
     private final ObjectMapper objectMapper;
+    private Key cachedPublicKey;
+    private long lastJwksFetch = 0;
+    private static final long JWKS_CACHE_DURATION = 3600000; // 1 hour
 
     public ClerkJwtFilter(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
@@ -59,6 +62,14 @@ public class ClerkJwtFilter extends OncePerRequestFilter {
 
         try {
             Claims claims = validateToken(token);
+
+            // Basic issuer verification
+            String issuer = claims.getIssuer();
+            if (expectedIssuer != null && !expectedIssuer.equals(issuer)) {
+                log.warn("JWT Issuer mismatch. Expected: {}, Got: {}", expectedIssuer, issuer);
+                throw new IllegalStateException("Invalid issuer");
+            }
+
             String clerkId = claims.getSubject();
             String role = (String) claims.getOrDefault("role", "FREE");
 
@@ -82,24 +93,26 @@ public class ClerkJwtFilter extends OncePerRequestFilter {
 
     private Claims validateToken(String token) {
         try {
-            // Fetch JWKS and extract public key — simplified for scaffold
-            // In production, use a JWKS cache (e.g., NimbusJwtDecoder)
-            URL jwksUrl = URI.create(jwksUri).toURL();
-            Map<?, ?> jwks = objectMapper.readValue(jwksUrl, Map.class);
-            List<?> keys = (List<?>) jwks.get("keys");
-            Map<?, ?> jwk = (Map<?, ?>) keys.get(0);
+            if (cachedPublicKey == null || System.currentTimeMillis() - lastJwksFetch > JWKS_CACHE_DURATION) {
+                log.info("Fetching fresh JWKS from Clerk...");
+                URL jwksUrl = URI.create(jwksUri).toURL();
+                Map<?, ?> jwks = objectMapper.readValue(jwksUrl, Map.class);
+                List<?> keys = (List<?>) jwks.get("keys");
+                Map<?, ?> jwk = (Map<?, ?>) keys.get(0);
 
-            String n = (String) jwk.get("n");
-            String e = (String) jwk.get("e");
+                String n = (String) jwk.get("n");
+                String e = (String) jwk.get("e");
 
-            // Build RSA key from JWK components
-            java.math.BigInteger modulus = new java.math.BigInteger(1, Base64.getUrlDecoder().decode(n));
-            java.math.BigInteger exponent = new java.math.BigInteger(1, Base64.getUrlDecoder().decode(e));
-            java.security.spec.RSAPublicKeySpec keySpec = new java.security.spec.RSAPublicKeySpec(modulus, exponent);
-            Key publicKey = KeyFactory.getInstance("RSA").generatePublic(keySpec);
+                java.math.BigInteger modulus = new java.math.BigInteger(1, Base64.getUrlDecoder().decode(n));
+                java.math.BigInteger exponent = new java.math.BigInteger(1, Base64.getUrlDecoder().decode(e));
+                java.security.spec.RSAPublicKeySpec keySpec = new java.security.spec.RSAPublicKeySpec(modulus,
+                        exponent);
+                cachedPublicKey = KeyFactory.getInstance("RSA").generatePublic(keySpec);
+                lastJwksFetch = System.currentTimeMillis();
+            }
 
             return Jwts.parser()
-                    .verifyWith((java.security.PublicKey) publicKey)
+                    .verifyWith((java.security.PublicKey) cachedPublicKey)
                     .build()
                     .parseSignedClaims(token)
                     .getPayload();
