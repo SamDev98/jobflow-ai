@@ -8,6 +8,21 @@ export type Stage =
 
 export type Tier = 'FREE' | 'PRO'
 
+export type HistoryType =
+  | 'RESUME_OPTIMIZATION'
+  | 'INTERVIEW_PREP'
+  | 'SALARY_RESEARCH'
+  | 'APPLICATION_AUTO_FILL'
+
+export interface HistoryItem {
+  id: string
+  type: HistoryType
+  title: string
+  content: string
+  metadata?: string
+  createdAt: string
+}
+
 export interface Application {
   id: string
   company: string

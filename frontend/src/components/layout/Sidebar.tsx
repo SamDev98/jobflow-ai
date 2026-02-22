@@ -4,6 +4,7 @@ import {
   Kanban,
   Settings,
   Wrench,
+  Clock,
   ChevronLeft,
   ChevronRight,
   Menu,
@@ -15,6 +16,7 @@ const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: BarChart3 },
   { to: '/pipeline', label: 'Pipeline', icon: Kanban },
   { to: '/tools', label: 'Tools', icon: Wrench },
+  { to: '/history', label: 'History', icon: Clock },
   { to: '/settings', label: 'Settings', icon: Settings },
 ];
 

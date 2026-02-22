@@ -149,11 +149,11 @@ export function AddApplicationDialog() {
             </div>
 
             <div className='space-y-1.5'>
-              <label className='text-sm font-medium text-slate-300'>
+              <label className='text-sm font-medium text-muted-foreground'>
                 Current Stage
               </label>
               <select
-                className='w-full bg-muted border border-border text-foreground rounded-md px-3 py-2 focus:ring-2 focus:ring-primary outline-none'
+                className='w-full bg-muted border border-border text-foreground rounded-md px-3 py-2 focus:ring-2 focus:ring-primary outline-none transition-all cursor-pointer'
                 value={formData.stage}
                 onChange={(e) =>
                   setFormData({ ...formData, stage: e.target.value as Stage })
@@ -164,16 +164,17 @@ export function AddApplicationDialog() {
                 <option value='TECHNICAL'>Technical Interview</option>
                 <option value='ONSITE'>Onsite</option>
                 <option value='OFFER'>Offer</option>
+                <option value='REJECTED'>Rejected</option>
               </select>
             </div>
 
             <div className='space-y-1.5'>
-              <label className='text-sm font-medium text-slate-300'>
+              <label className='text-sm font-medium text-muted-foreground'>
                 Notes
               </label>
               <textarea
                 placeholder='Internal referrals, etc.'
-                className='w-full bg-slate-800 border-slate-700 text-white rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none h-24 resize-none'
+                className='w-full bg-muted border border-border text-foreground rounded-md px-3 py-2 focus:ring-2 focus:ring-primary outline-none h-24 resize-none transition-all'
                 value={formData.notes}
                 onChange={(e) =>
                   setFormData({ ...formData, notes: e.target.value })

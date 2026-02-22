@@ -47,6 +47,14 @@ export const analyticsApi = {
 
 // ─── Resumes ─────────────────────────────────────────────────
 
+export const historyApi = {
+  list: (params?: { type?: string; page?: number; size?: number }) =>
+    api.get('/history', { params }).then((r) => r.data),
+
+  delete: (id: string) =>
+    api.delete(`/history/${id}`).then((r) => r.data),
+}
+
 export const resumeApi = {
   optimize: (formData: FormData) =>
     api.post('/resumes/optimize', formData, {
