@@ -7,7 +7,6 @@ import com.jobflow.entity.User;
 import com.jobflow.entity.enums.HistoryType;
 import com.jobflow.exception.ResourceNotFoundException;
 import com.jobflow.repository.HistoryRepository;
-import com.jobflow.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +18,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class HistoryService {
 
   private final HistoryRepository historyRepository;

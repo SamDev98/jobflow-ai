@@ -41,6 +41,8 @@ class InterviewPrepServiceTest {
   private JobApplicationRepository jobApplicationRepository;
   @Mock
   private UserService userService;
+  @Mock
+  private HistoryService historyService;
 
   private InterviewPrepService interviewPrepService;
 
@@ -51,7 +53,8 @@ class InterviewPrepServiceTest {
         interviewPrepRepository,
         jobApplicationRepository,
         userService,
-        new ObjectMapper());
+        new ObjectMapper(),
+        historyService);
   }
 
   @Test

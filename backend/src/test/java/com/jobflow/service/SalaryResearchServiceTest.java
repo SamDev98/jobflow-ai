@@ -32,6 +32,8 @@ class SalaryResearchServiceTest {
   private SalaryResearchRepository salaryResearchRepository;
   @Mock
   private UserService userService;
+  @Mock
+  private HistoryService historyService;
 
   private SalaryResearchService salaryResearchService;
 
@@ -41,7 +43,8 @@ class SalaryResearchServiceTest {
         llm,
         salaryResearchRepository,
         userService,
-        new ObjectMapper());
+        new ObjectMapper(),
+        historyService);
   }
 
   @Test
