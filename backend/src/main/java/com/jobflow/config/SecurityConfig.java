@@ -39,8 +39,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_PATHS).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .anyRequest().authenticated()
-                )
+                        .anyRequest().authenticated())
                 .addFilterBefore(clerkJwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
@@ -52,8 +51,7 @@ public class SecurityConfig {
                 "http://localhost:5173",
                 "https://*.vercel.app",
                 "https://jobflow-ai.vercel.app",
-                "https://jobflow-ai-ten.vercel.app"
-        ));
+                "https://jobflow-ai-ten.vercel.app"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"));
         config.setAllowCredentials(true);
