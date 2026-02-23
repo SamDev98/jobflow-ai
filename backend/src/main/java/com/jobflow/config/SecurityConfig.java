@@ -50,10 +50,10 @@ public class SecurityConfig {
         config.setAllowedOriginPatterns(List.of(
                 "http://localhost:5173",
                 "https://*.vercel.app",
-                "https://jobflow-ai.vercel.app",
-                "https://jobflow-ai-ten.vercel.app"));
+                "https://jobflow.dev",
+                "https://www.jobflow.dev"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"));
+        config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);
 
