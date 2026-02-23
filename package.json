@@ -1,0 +1,12 @@
+{
+  "name": "jobflow-ai-root",
+  "private": true,
+  "engines": {
+    "node": "20.x"
+  },
+  "scripts": {
+    "build": "npm run build --prefix frontend",
+    "install-frontend": "npm install --prefix frontend",
+    "test": "npm test --prefix frontend"
+  }
+}
