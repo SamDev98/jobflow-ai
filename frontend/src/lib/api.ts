@@ -9,8 +9,7 @@ const api = axios.create({
 
 // Inject Clerk JWT before every request
 api.interceptors.request.use(async (config) => {
-  // window.__clerk is set by ClerkProvider
-  const clerk = (window as any).__clerk
+  const clerk = (window as any).Clerk
   if (clerk?.session) {
     const token = await clerk.session.getToken()
     if (token) {
