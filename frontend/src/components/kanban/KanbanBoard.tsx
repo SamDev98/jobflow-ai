@@ -19,18 +19,32 @@ export function KanbanBoard() {
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event
-    if (!over || active.id === over.id) return
+    if (!over) return
 
     const applicationId = active.id as string
-    const newStage = over.id as Stage
+    const overId = over.id as string
 
-    // Only update if dropped on a stage column
-    if (STAGES.includes(newStage)) {
-      updateApplication.mutate({
-        id: applicationId,
-        data: { stage: newStage },
-      })
+    // Resolve the target stage: either a column id or the stage of the card being dropped onto
+    let targetStage: Stage | undefined
+
+    if (STAGES.includes(overId as Stage)) {
+      targetStage = overId as Stage
+    } else {
+      // overId is another application's id — find which stage it belongs to
+      const overApp = applications.find((a) => a.id === overId)
+      targetStage = overApp?.stage
     }
+
+    if (!targetStage) return
+
+    // Find the current stage of the dragged application
+    const activeApp = applications.find((a) => a.id === applicationId)
+    if (!activeApp || activeApp.stage === targetStage) return
+
+    updateApplication.mutate({
+      id: applicationId,
+      data: { stage: targetStage },
+    })
   }
 
   if (isLoading) {
