@@ -2,11 +2,17 @@ spring:
   application:
     name: jobflow-api
 
+  main:
+    lazy-initialization: true
+
   datasource:
     url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:jobflow}
     username: ${POSTGRES_USER:jobflow}
     password: ${POSTGRES_PASSWORD:jobflow}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 3
+      minimum-idle: 1
 
   jpa:
     hibernate:
@@ -47,6 +53,10 @@ server:
   address: 0.0.0.0
   error:
     include-message: always
+  tomcat:
+    threads:
+      max: 20
+      min-spare: 2
 
 management:
   health:
