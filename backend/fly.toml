@@ -25,12 +25,15 @@ primary_region = 'gru'
     hard_limit = 250
     soft_limit = 200
 
-  [[http_service.checks]]
-    interval = "15s"
-    timeout = "5s"
-    grace_period = "300s"
-    method = "GET"
-    path = "/actuator/health"
+[checks]
+  [checks.health]
+    port = 8080
+    type = 'http'
+    interval = '15s'
+    timeout = '10s'
+    grace_period = '300s'
+    method = 'GET'
+    path = '/actuator/health'
 
 [[vm]]
   memory = '1gb'
