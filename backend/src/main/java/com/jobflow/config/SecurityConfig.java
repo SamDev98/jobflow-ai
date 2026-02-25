@@ -48,7 +48,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOriginPatterns(List.of(
-                "http://localhost:5173",
+                "http://localhost:[*]",
                 "https://*.vercel.app",
                 "https://jobflow.dev",
                 "https://www.jobflow.dev"));
