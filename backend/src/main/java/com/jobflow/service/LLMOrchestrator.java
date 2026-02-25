@@ -1,14 +1,16 @@
 package com.jobflow.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jobflow.client.OpenRouterClient;
 import com.jobflow.client.OpenRouterRequest;
+import com.jobflow.client.OpenRouterResponse;
 import com.jobflow.entity.enums.Tier;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
 
 import java.time.Duration;
 import java.util.List;
@@ -19,12 +21,14 @@ import java.util.List;
 @SuppressWarnings("null")
 public class LLMOrchestrator {
 
-    private final OpenRouterClient openRouterClient;
     private final RedisTemplate<String, Object> redisTemplate;
     private final ObjectMapper objectMapper;
 
     @Value("${openrouter.api-key}")
     private String apiKey;
+
+    @Value("${openrouter.base-url}")
+    private String baseUrl;
 
     @Value("${openrouter.default-model}")
     private String defaultModel;
@@ -32,7 +36,16 @@ public class LLMOrchestrator {
     @Value("${openrouter.pro-model}")
     private String proModel;
 
+    private RestClient restClient;
+
     private static final Duration CACHE_TTL = Duration.ofDays(7);
+
+    @PostConstruct
+    void init() {
+        restClient = RestClient.builder()
+                .baseUrl(baseUrl)
+                .build();
+    }
 
     public String complete(String prompt, Tier tier) {
         return complete(prompt, tier, false);
@@ -57,8 +70,13 @@ public class LLMOrchestrator {
                 .temperature(jsonOutput ? 0.3 : 0.7)
                 .build();
 
-        String response = openRouterClient
-                .complete("Bearer " + apiKey, "https://jobflow.ai", request)
+        String response = restClient.post()
+                .uri("/chat/completions")
+                .header("Authorization", "Bearer " + apiKey)
+                .header("HTTP-Referer", "https://jobflow.ai")
+                .body(request)
+                .retrieve()
+                .body(OpenRouterResponse.class)
                 .getContent();
 
         redisTemplate.opsForValue().set(cacheKey, response, CACHE_TTL);
