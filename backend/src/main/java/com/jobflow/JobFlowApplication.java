@@ -7,7 +7,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableScheduling
-@EnableJpaRepositories("com.jobflow.repository")
 public class JobFlowApplication {
 
     public static void main(String[] args) {

@@ -1,6 +1,7 @@
 package com.jobflow.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jobflow.client.OpenRouterRequest;
 import com.jobflow.client.OpenRouterResponse;
 import com.jobflow.entity.enums.Tier;
 import org.junit.jupiter.api.BeforeEach;
@@ -76,7 +77,7 @@ class LLMOrchestratorTest {
         when(restClient.post()).thenReturn(uriSpec);
         when(uriSpec.uri(anyString())).thenReturn(bodySpec);
         when(bodySpec.header(anyString(), anyString())).thenReturn(bodySpec);
-        when(bodySpec.body(any())).thenReturn(bodySpec);
+        when(bodySpec.body(any(OpenRouterRequest.class))).thenAnswer(i -> bodySpec);
         when(bodySpec.retrieve()).thenReturn(responseSpec);
         when(responseSpec.body(OpenRouterResponse.class)).thenReturn(openRouterResponse);
         when(openRouterResponse.getContent()).thenReturn(apiResponse);
