@@ -29,4 +29,5 @@ ENTRYPOINT ["java", \
   "-XX:+UseSerialGC", \
   "-XX:MaxMetaspaceSize=96m", \
   "-XX:ReservedCodeCacheSize=64m", \
+  "-XX:-FlightRecorder", \
   "-jar", "app.jar"]
