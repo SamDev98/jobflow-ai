@@ -3,6 +3,7 @@ import { UserButton } from '@clerk/clerk-react';
 import { Sidebar } from './Sidebar';
 import { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
+import { isDemoMode } from '@/lib/env';
 
 export function AppLayout() {
   const [isCollapsed, setCollapsed] = useState(false);
@@ -49,7 +50,13 @@ export function AppLayout() {
           </div>
 
           <div className='flex items-center gap-4'>
-            <UserButton afterSignOutUrl='/' />
+            {isDemoMode ? (
+              <span className='rounded-md border border-primary/20 bg-primary/10 px-2 py-1 text-xs font-medium text-primary'>
+                Demo Mode
+              </span>
+            ) : (
+              <UserButton afterSignOutUrl='/' />
+            )}
           </div>
         </header>
 

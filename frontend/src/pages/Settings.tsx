@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { UserProfile } from '@clerk/clerk-react'
 import { Loader2, Save } from 'lucide-react'
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile'
+import { isDemoMode } from '@/lib/env'
 
 const WORK_MODE_OPTIONS = ['Remote', 'Hybrid', 'On-site']
 
@@ -132,9 +133,19 @@ export function Settings() {
       <section className="space-y-4">
         <div>
           <h2 className="text-lg font-semibold">Account</h2>
-          <p className="text-sm text-muted-foreground">Manage your Clerk account, email, and security settings.</p>
+          <p className="text-sm text-muted-foreground">
+            {isDemoMode
+              ? 'Demo mode enabled. Account management is available in self-host mode with Clerk configured.'
+              : 'Manage your Clerk account, email, and security settings.'}
+          </p>
         </div>
-        <UserProfile />
+        {isDemoMode ? (
+          <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+            Account controls are hidden in demo mode.
+          </div>
+        ) : (
+          <UserProfile />
+        )}
       </section>
     </div>
   )
