@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
 # Cores para o output
 GREEN='\033[0;32m'
@@ -7,9 +8,11 @@ NC='\033[0m' # No Color
 
 echo "🚀 Iniciando fluxo de testes completo para JobFlow AI..."
 
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # 1. Testes do Backend
 echo -e "\n${GREEN}==> Executando testes do Backend (JUnit)...${NC}"
-cd /Users/samdev/dev/jobflow-ai/backend
+cd "$ROOT_DIR/backend"
 if ./mvnw test; then
     echo -e "${GREEN}✅ Backend OK!${NC}"
 else
@@ -19,7 +22,7 @@ fi
 
 # 2. Testes do Frontend
 echo -e "\n${GREEN}==> Executando testes do Frontend (Vitest)...${NC}"
-cd /Users/samdev/dev/jobflow-ai/frontend
+cd "$ROOT_DIR/frontend"
 if npm test; then
     echo -e "${GREEN}✅ Frontend OK!${NC}"
 else
