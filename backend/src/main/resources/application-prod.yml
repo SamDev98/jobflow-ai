@@ -1,0 +1,39 @@
+spring:
+  datasource:
+    # Adding prepareThreshold=0 for compatibility with PGBouncer (Supabase)
+    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT:5432}/${POSTGRES_DB:postgres}?sslmode=require&prepareThreshold=0
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      connection-timeout: 30000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+
+  flyway:
+    # Also for Flyway to avoid prepared statement issues
+    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT:5432}/${POSTGRES_DB:postgres}?sslmode=require&prepareThreshold=0
+    user: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    enabled: true
+
+  data:
+    redis:
+      # Upstash TLS URL: rediss://:password@host:port
+      url: ${REDIS_URL}
+      ssl:
+        enabled: true
+
+jobflow:
+  mail:
+    from: ${MAIL_FROM}
+
+logging:
+  level:
+    '[com.jobflow]': INFO
+    '[org.springframework.security]': WARN
+    '[org.hibernate]': WARN
